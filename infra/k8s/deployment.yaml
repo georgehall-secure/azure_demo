@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flight-ops-api
+  namespace: production
+  annotations:
+    aikido.dev/repo: "georgehall-secure/azure_demo"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flight-ops-api
+  template:
+    metadata:
+      labels:
+        app: flight-ops-api
+    spec:
+      containers:
+        - name: flight-ops-api
+          image: <ACR_NAME>.azurecr.io/flight-ops-api:v1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_CONNECTION_STRING
+              value: "postgresql://admin:pass@sas-demo-db.postgres.database.azure.com:5432/flights"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flight-ops-svc
+  namespace: production
+spec:
+  type: LoadBalancer
+  selector:
+    app: flight-ops-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
